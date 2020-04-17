@@ -28,10 +28,6 @@ export default class CreateTransactions1586993081618
             type: 'varchar',
           },
           {
-            name: 'category',
-            type: 'varchar',
-          },
-          {
             name: 'category_id',
             type: 'uuid',
             isNullable:true,
