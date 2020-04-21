@@ -1,14 +1,14 @@
-import { getCustomRepository } from 'typeorm';
+import { getCustomRepository, getRepository } from 'typeorm';
 
 import AppError from '../errors/AppError';
-import Transaction from '../models/Transaction';
-import CreateCategoryService from './CreateCategoryService';
 import TransactionsRepository from '../repositories/TransactionsRepository';
+import Transaction from '../models/Transaction';
+import Category from '../models/Category';
 
 interface RequestDTO {
   title: string;
-  value: number;
   type: 'income' | 'outcome';
+  value: number;
   category: string;
 }
 
@@ -19,29 +19,37 @@ export default class CreateTransactionService {
     type,
     category,
   }: RequestDTO): Promise<Transaction> {
-    // DONE
     const transactionsRepository = getCustomRepository(TransactionsRepository);
+    const categoryRepository = getRepository(Category);
+
     if (type !== 'outcome' && type !== 'income') {
       throw new AppError('Invalid type of transaction', 400);
     }
 
-    const balance = await transactionsRepository.getBalance();
-    if (type === 'outcome' && value > balance.total) {
+    const { total } = await transactionsRepository.getBalance();
+    if (type === 'outcome' && value > total) {
       throw new AppError('Not enough money.', 400);
     }
 
-    const createCategory = new CreateCategoryService();
-    const createdCategory = await createCategory.execute(category);
-
+    let transactionCategory = await categoryRepository.findOne({
+      where: {
+        title: category,
+      },
+    });
+    if (!transactionCategory) {
+      transactionCategory = categoryRepository.create({
+        title: category,
+      });
+      await categoryRepository.save(transactionCategory);
+    }
     const transaction = transactionsRepository.create({
       title,
-      type,
       value,
-      category_id: createdCategory.id,
+      type,
+      category: transactionCategory,
     });
 
     await transactionsRepository.save(transaction);
     return transaction;
-    // DONE
   }
 }

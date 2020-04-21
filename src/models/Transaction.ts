@@ -21,15 +21,15 @@ export default class Transaction {
   @Column()
   type: 'income' | 'outcome';
 
-  @Column('integer')
+  @Column('decimal')
   value: number;
+
+  @ManyToOne(() => Category, category => category.transaction, { eager: true })
+  @JoinColumn({ name: 'category_id' })
+  category: Category;
 
   @Column()
   category_id: string;
-
-  @ManyToOne(() => Category)
-  @JoinColumn({ name: 'category_id' })
-  category: Category;
 
   @CreateDateColumn()
   created_at: Date;

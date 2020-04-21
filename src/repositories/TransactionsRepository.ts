@@ -14,12 +14,11 @@ export default class TransactionsRepository extends Repository<Transaction> {
     const transactions = await this.find();
     const income = transactions
       .filter(transaction => transaction.type === 'income')
-      .reduce((total, current) => total + current.value, 0);
+      .reduce((total, current) => total + Number(current.value), 0);
     const outcome = transactions
       .filter(transaction => transaction.type === 'outcome')
-      .reduce((total, current) => total + current.value, 0);
+      .reduce((total, current) => total + Number(current.value), 0);
     const total = income - outcome;
-    const balance = { income, outcome, total };
-    return balance;
+    return { income, outcome, total };
   }
 }
